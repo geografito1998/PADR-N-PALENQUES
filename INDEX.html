@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Padrón de Palenques para la Producción de Mezcal del Estado de Puebla (2022-2024)</title>
+    
+    <!-- Enlace a la fuente Poppins desde Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Enlaza el archivo CSS de Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <!-- Enlaza Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+
+
+    <style>
+        body {
+            margin: 0px;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Estilo para el contenedor principal */
+        #container {
+            display: flex;
+            width: 100%;
+            height: 90vh;
+        }
+
+        /* Estilo para el encabezado */
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #501717;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilo para el contenedor de texto */
+        .header-text {
+            flex: 1;
+            text-align: center;
+        }
+
+        /* Estilo para el encabezado principal */
+        .header-text h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            color:#f0f0f0;
+        }
+
+        /* Estilo para el encabezado secundario */
+        .header-text h2 {
+            font-size: 18px;
+            font-weight: 400;
+            margin: 0;
+            color: #f0f0f0;
+        }
+
+        /* Estilo para las imágenes del encabezado */
+        .header-image {
+            width: 360px; /* Ajusta el tamaño de las imágenes según sea necesario */
+            height: auto;
+            margin: 0 20px;
+        }
+
+        /* Estilo para el cuadro de descripción */
+        #description {
+            width: 30%;
+            padding: 30px;
+            background-color: #fffefe;          
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            font-family: 'Poppins', sans-serif;
+            font-size: 10px; /* Tamaño de la fuente ajustado */
+            text-align: justify; /* Justificar el texto */
+            line-height: 1.6; /* Espaciado entre líneas para mejor legibilidad */
+        }
+
+        /* Estilo para el mapa */
+        #map {
+            height: 100%;
+            margin: 0px; 
+            border:#000000; 
+            width border: ;
+            width: 65%; /* Ajusta el ancho del mapa según sea necesario */
+            position: relative; /* Necesario para posicionar el botón */
+        }
+
+        /* Estilo para el botón de ubicación */
+        #locate-button {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: #461818;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000; /* Asegura que el botón esté sobre el mapa */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        /* Estilo para el botón de descarga */
+        .download-button {
+            position: relative;
+            bottom: 10px;
+            left:100px;
+            background-color: #461818;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+
+
+        }
+
+        #locate-button i {
+            font-size: 20px; /* Tamaño del icono */
+        }
+
+        /* Estilo para la leyenda */
+        #legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: absolute;
+            bottom: 10px;
+            right: 0px;
+            z-index: 1000;
+        }
+
+        #legend h4 {
+            margin: 0 0 5px;
+            font-size: 14px;
+        }
+
+        #legend input {
+            margin-right: 5px;
+        }
+
+        /* Estilo para el popup */
+        .leaflet-popup-content-wrapper {
+            max-width: 900px;
+        }
+
+        .leaflet-popup-content {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+        }
+
+        /* Estilo para la tabla en el popup */
+        .popup-table {
+            font-family: 'Poppins', sans-serif;
+            font-size: 7.5px;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0%;
+        }
+
+        .popup-table td {
+            border: 1px solid #000000;
+            padding: 4px;
+        }
+
+        .popup-table tr:nth-child(even) {
+            background-color: #dfdfdf;
+        }
+
+        .popup-table tr:nth-child(odd) {
+            background-color: #fff;
+        }
+
+        .popup-image {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sección del encabezado con imágenes -->
+    <div id="header">
+        <img src="https://i.ibb.co/4ZXSfW2/LOGO-DE-GOBIERNO-2024-04.png" alt="Imagen 1" class="header-image">
+        <div class="header-text">
+            <h1>PROYECTO ESTRATÉGICO DE IMPULSO AL AGAVE MEZCALERO POBLANO DE LA SECRETARÍA DE DESARROLLO RURAL DEL ESTADO DE PUEBLA</h1>
+            <h2>PADRÓN DE PALENQUES PARA LA ELABORACIÓN DE MEZCAL APOYADOS DURANTE EL CICLO 2022-2024</h2>
+        </div>
+        <img src="https://i.ibb.co/x1qyBzc/LOGOSDR-01.png" alt="Imagen 2" class="header-image">
+    </div>
+
+    <div id="container">
+        <!-- Cuadro de descripción -->
+        <div id="description">
+            <h2>El GOBIERNO PRESENTE que encabeza el C. Gobernador Sergio Salomón Céspedes Peregrina ha tenido como estandarte el Proyecto Estratégico de Impulso al Agave Mezcalero en la entidad poblana. Uno de los ejes de acción de dicho proyecto es la instalación y/o rehabilitación de palenques para la producción de mezcal, los cuales tienen cómo objetivo incrementar la producción de dicha bebida, al mismo tiempo mejorar las condiciones socioeconómicas de las y los productores poblanos. La información mostrada en este sitio está categorizada según el tipo de apoyo recibido por el beneficiario, el cual puede ser INSTALACIÓN DE PALENQUES NUEVOS, PALENQUES REHABILITADOS y además se muestran aquellos casos en los que se recibieron apoyos de las dos categorías, denominados INSTALACIÓN Y REHABILITACIÓN DE PALENQUES</h2>
+            <img src="https://i.ibb.co/tLLvWsS/mapa-web-2.png" alt="mapa-web-2" border="0"></a>
+            <img src="https://i.ibb.co/Qb57KX1/mapa-web-3.png" alt="mapa-web-3" border="0"></a> 
+            <img src="https://i.ibb.co/DRH45gw/MAPAWEB-1.jpg" alt="MAPAWEB-1" border="0"></a> 
+            
+
+
+
+        <!-- Botón de descarga -->
+        <a href="https://drive.google.com/file/d/1_3i2-15xcWpdqKuydFKnuetHixM966HH/view?usp=sharing" download class="download-button">Descargar Padrón de Beneficiarios</a>
+
+
+
+        </div>
+
+        <!-- Contenedor del mapa -->
+        <div id="map">
+        <!-- Botón de ubicación -->
+        <button id="locate-button"><i class="fas fa-location-arrow"></i></button>
+        
+
+        </div>
+    </div>
+
+    <!-- Añadir contenedor de leyenda -->
+    <div id="legend">
+        <h4>Tipos de Apoyo</h4>
+        <input type="checkbox" id="nuevo" checked><label for="nuevo">Instalación de Palenques Nuevos</label><br>
+        <input type="checkbox" id="rehabilitado" checked><label for="rehabilitado">Palenques Rehabilitados</label><br>
+        <input type="checkbox" id="mixto" checked><label for="mixto">Instalación y Rehabilitación de Palenques</label>
+    </div>
+
+    <!-- Enlaza el archivo JavaScript de Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Enlaza el archivo JavaScript que contiene los datos GeoJSON -->
+    <script src="Puntos.js"></script>
+    <script>
+        // Crear el mapa
+        var map = L.map('map', {
+            center: [19.04213535011562, -98.17978997655156],
+            zoom: 8
+        });
+
+        // Crear capas para los mapas base
+        var topoMap = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com/en-us/home">Esri</a> & <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        var osmMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        var imageryMap = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com/en-us/home">Esri</a>'
+        });
+
+        // Añadir el mapa base inicial
+        topoMap.addTo(map);
+
+        // Crear capas para cada tipo de apoyo
+        var layers = {
+            "Nuevo": L.layerGroup(),
+            "Rehabilitado": L.layerGroup(),
+            "Mixto": L.layerGroup()
+        };
+
+
+        
+        // Añadir puntos al mapa
+        if (typeof geojsonData !== 'undefined') {
+            L.geoJSON(geojsonData, {
+                onEachFeature: function (feature, layer) {
+                    var popupContent = '<table class="popup-table">';
+                    for (var key in feature.properties) {
+                        if (feature.properties.hasOwnProperty(key)) {
+                            if (key === "FOTOGRAFÍA") {
+                                popupContent += '<tr><td>' + key + '</td><td><a href="' + feature.properties[key] + '" target="_blank">Ver Fotografía</a></td></tr>';
+                            } else {
+                                popupContent += '<tr><td>' + key + '</td><td>' + feature.properties[key] + '</td></tr>';
+                            }
+                        }
+                    }
+                    popupContent += '</table>';
+                    layer.bindPopup(popupContent);
+
+                    // Añadir punto a la capa correspondiente
+                    if (feature.properties["TIPO DE APOYO"] === "INSTALACIÓN DE PALENQUES NUEVOS") {
+                        layers["Nuevo"].addLayer(layer);
+                    } else if (feature.properties["TIPO DE APOYO"] === "REHABILITACIÓN DE PALENQUES") {
+                        layers["Rehabilitado"].addLayer(layer);
+                    } else if (feature.properties["TIPO DE APOYO"] === "INSTALACIÓN Y REHABILITACIÓN DE PALENQUES") {
+                        layers["Mixto"].addLayer(layer);
+                    }
+                }
+            });
+
+            // Añadir capas al mapa
+            for (var key in layers) {
+                layers[key].addTo(map);
+            }
+        } else {
+            console.error('El archivo Puntos.js no se ha cargado correctamente.');
+        }
+
+        // Funcionalidad para el botón de ubicación
+        document.getElementById('locate-button').addEventListener('click', function() {
+            map.locate({setView: true, maxZoom: 16});
+        });
+
+        // Evento para centrar el mapa en la ubicación actual del usuario
+        map.on('locationfound', function(e) {
+            L.marker(e.latlng).addTo(map)
+                .bindPopup('Estás aquí.')
+                .openPopup();
+        });
+
+        // Evento para manejar errores de ubicación
+        map.on('locationerror', function(e) {
+            alert('No se pudo obtener la ubicación.');
+        });
+
+        // Controlar la visibilidad de las capas según los checkboxes
+        document.getElementById('nuevo').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(layers["Nuevo"]);
+            } else {
+                map.removeLayer(layers["Nuevo"]);
+            }
+        });
+
+        document.getElementById('rehabilitado').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(layers["Rehabilitado"]);
+            } else {
+                map.removeLayer(layers["Rehabilitado"]);
+            }
+        });
+
+        document.getElementById('mixto').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                map.addLayer(layers["Mixto"]);
+            } else {
+                map.removeLayer(layers["Mixto"]);
+            }
+        });
+
+        // Añadir control de capas
+        L.control.layers({
+            "Mapa Topográfico": topoMap,
+            "OpenStreetMap": osmMap,
+            "Imagen Sátelital": imageryMap
+        }).addTo(map);
+    </script>
+</body>
+</html>
